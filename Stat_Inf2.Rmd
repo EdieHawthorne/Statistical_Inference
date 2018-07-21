@@ -1,0 +1,76 @@
+---
+title: "Statistical Inference Assignment_Part2"
+author: "Edie Hawthorne"
+date: "7/21/2018"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+library(knitr)
+opts_chunk$set(echo = TRUE)
+```
+
+Part 2: Basic Inferential Data Analysis 
+
+This part is the analysis of the ToothGrowth Data in the R datasets package.
+
+## Overview
+
+This analysis is to use the confidence intervals to compare tooth growth by supp (supplement type) and dose (Dose in milligrams/day) in the ToothGrowth dataset.
+
+## Basic exploratory data analysis 
+
+After leading the ToothGrowth dataset, we found out there are 60 observations and three variables in this data frame. The variables are the Tooth Length (len), the supplement type VC or Oj (supp) which is a factor, and the dose in milligrams/day (dose). 
+
+```{r load, echo=TRUE}
+library(datasets)
+str(ToothGrowth)
+```
+
+## Summary
+
+From the summary of the dataset, we can see the 5 statistical numbers of each variable. 
+```{r sum, echo=TRUE}
+summary(ToothGrowth)
+```
+
+
+## Subset 
+
+Subset the ToothGrowth data by supp (Supplement type) of VC and OJ as well as the dose (Dose in milligrams/day) of 0.5, 1 and 2.
+
+```{r subset, echo=TRUE}
+group_vc_0.5 <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == "0.5","len"]
+group_vc_1 <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == "1","len"]
+group_vc_2 <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == "2","len"]
+group_oj_0.5 <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == "0.5","len"]
+group_oj_1 <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == "1","len"]
+group_oj_2 <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == "2","len"]
+```
+
+
+## Confidence Intervals
+
+Take the confidence intervals of each subset groups by the supplement type factor and dose. From the confidence interval matrix comparason we can see, we will reject the group_0.5 abd group_1 which are the supplement and does with 0.5 milligrams/day. We fail to reject group_2 which is the supplement and does with 2 milligrams/day because it's confidence interval contains mean 0.
+
+```{r conf, echo=TRUE, warning=FALSE, message=FALSE}
+library(dplyr)
+confs <- as.data.frame(
+    matrix(
+        c(t.test(group_oj_0.5, group_vc_0.5, paired = FALSE, var.equal = FALSE)$conf,
+          t.test(group_oj_1, group_vc_1, paired = FALSE, var.equal = FALSE)$conf,
+          t.test(group_oj_2, group_vc_2, paired = FALSE, var.equal = FALSE)$conf),
+        ncol=2,
+        byrow=TRUE
+    )
+)
+confs <- rename(confs, lower = V1, upper = V2)
+confs$group <- c("group_0.5", "group_1", "group_2") 
+
+confs <- confs %>% select(group, lower, upper)
+
+```
+
+Comparison of the confidence Intervals steps: `r kable(confs)`
+
